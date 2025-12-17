@@ -175,7 +175,10 @@ int createTileFile(const byteBuf_t *compressed, uint8_t bpp, tilesData_t tilesDa
 	mkdir(outdir, 0755);
 
 	char filename[256];
-	snprintf(filename, sizeof(filename), "%s/%s_%03d_%03d.zst", outdir, outdir, tx, ty);
+	if (outdir[0])
+		snprintf(filename, sizeof(filename), "%s/%s_%03d_%03d.zst", outdir, outdir, tx, ty);
+	else
+		snprintf(filename, sizeof(filename), "tile_%03d_%03d.zst", tx, ty);
 	FILE *f = fopen(filename, "wb");
 	if (!f)
 	{
@@ -197,8 +200,8 @@ int main(int argc, char **argv)
 	uint8_t bpp = BITS_PER_PIXEL;
 	readOpts(argc, argv, &subdivs, &bpp);
 
-	char infile[256];
-	char outdir[256];
+	char infile[256] = {};
+	char outdir[256] = {};
 	readArgs(argc, argv, infile, outdir);
 
 	imageData_t    imgData;
