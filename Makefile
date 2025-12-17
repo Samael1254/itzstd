@@ -16,6 +16,8 @@ CC = gcc
 
 CFLAGS = -Wall -Wextra -Werror -I$(HEADERS_DIR)
 
+LDFLAGS = -lm -lzstd
+
 $(NAME): $(OBJS)
 	@ echo " \033[33m  Compiling itzstd...\033[m"
 	@ $(CC) $(CFLAGS) -o $(NAME) $(OBJS) $(LDFLAGS)
