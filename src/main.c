@@ -39,7 +39,7 @@ void readOpts(int argc, char **argv, uint8_t *subdivs, uint8_t *bpp)
 			break;
 		case 'h':
 			help();
-			break;
+			exit(EXIT_SUCCESS);
 		case ':':
 			fprintf(stderr, "error: option requires argument: %s\n", argv[optind - 1]);
 			exit(EXIT_FAILURE);
