@@ -17,8 +17,8 @@ void help()
 	fprintf(stderr, "Converts a jpeg or png image into zstd compressed tiles\n\n");
 	fprintf(stderr, "Options:\n");
 	fprintf(stderr, "  -n subdivs	number of subdivisions (default: 5). Produces 2^(2n) tiles\n");
-	fprintf(stderr, "  -b bpp		bits per pixel of the resulting data\n");
-	fprintf(stderr, "  -h 			display this help\n");
+	fprintf(stderr, "  -b bpp	bits per pixel of the resulting data\n");
+	fprintf(stderr, "  -h 		display this help\n");
 }
 
 void readOpts(int argc, char **argv, uint8_t *subdivs, uint8_t *bpp)
