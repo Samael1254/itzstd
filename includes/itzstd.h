@@ -4,9 +4,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define SUBDIV            5
-#define BITS_PER_PIXEL    3
-#define COMPRESSION_LEVEL 5
+#define SUBDIV            0
+#define BITS_PER_PIXEL    8
+#define MARGIN            0
+#define COMPRESSION_LEVEL 3
 
 typedef struct ImageData
 {
@@ -17,9 +18,9 @@ typedef struct ImageData
 
 typedef struct TilesData
 {
-	int nbPerSide;
-	int width;
-	int height;
+	uint16_t nbPerSide;
+	uint32_t width;
+	uint32_t height;
 } tilesData_t;
 
 typedef struct ByteBuf
@@ -27,5 +28,13 @@ typedef struct ByteBuf
 	uint8_t *buf;
 	size_t   size;
 } byteBuf_t;
+
+typedef struct Opts
+{
+	uint8_t subdivs;
+	uint8_t bpp;
+	uint8_t margin;
+	uint8_t compression;
+} opts_t;
 
 #endif
