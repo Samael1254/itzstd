@@ -208,8 +208,8 @@ int createTileFile(const byteBuf_t *compressed, opts_t opts, tilesData_t tilesDa
 		fprintf(stderr, "failed to write tile %s\n", filename);
 		return 1;
 	}
-	fwrite(&tilesData.width, sizeof(int), 1, f);
-	fwrite(&tilesData.height, sizeof(int), 1, f);
+	fwrite(&tilesData.width, sizeof(uint32_t), 1, f);
+	fwrite(&tilesData.height, sizeof(uint32_t), 1, f);
 	fwrite(&opts.bpp, sizeof(uint8_t), 1, f);
 	fwrite(&opts.compression, sizeof(uint8_t), 1, f);
 	fwrite(&opts.margin, sizeof(uint8_t), 1, f);
@@ -239,7 +239,6 @@ int main(int argc, char **argv)
 
 	tilesData_t tilesData = computeTilesData(imgData, opts.subdivs);
 
-	// Loop for each tile
 	for (int ty = 0; ty < tilesData.nbPerSide; ty++)
 	{
 		for (int tx = 0; tx < tilesData.nbPerSide; tx++)
