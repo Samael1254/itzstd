@@ -16,11 +16,15 @@ void help()
 	fprintf(stderr, "Usage: itzstd [OPTION]... INFILE [OUTDIR]\n");
 	fprintf(stderr, "Converts a jpeg or png image into zstd compressed tiles\n\n");
 	fprintf(stderr, "Options:\n");
-	fprintf(stderr, "  -n subdivs		number of subdivisions (default: 5). Produces 2^(2n) tiles\n");
-	fprintf(stderr, "  -b bpp			bits per pixel of the resulting data\n");
-	fprintf(stderr, "  -m margin		add a margin to each tile, containing pixels from neighbors\n");
-	fprintf(stderr, "  -c compression	the zstd compression level\n");
-	fprintf(stderr, "  -h 				display this help\n");
+	fprintf(stderr, "  -n subdivs      number of subdivisions (default: %d). Produces 2^(2n) tiles\n", SUBDIV);
+	fprintf(stderr, "  -b bpp          bits per pixel of the resulting data (default: %d)\n", BITS_PER_PIXEL);
+	fprintf(
+	    stderr,
+	    "  -m margin       size in pixels of a margin on the borders of each tile, containing pixels from neighbors "
+	    "(default: %d)\n",
+	    MARGIN);
+	fprintf(stderr, "  -c compression  the zstd compression level (default: %d)\n", COMPRESSION_LEVEL);
+	fprintf(stderr, "  -h              display this help\n");
 }
 
 void readOpts(int argc, char **argv, opts_t *opts)
@@ -120,13 +124,22 @@ byteBuf_t packPixelData(const uint8_t *img, uint8_t bpp, uint8_t margin, tilesDa
                         int tx, int ty)
 
 {
-	uint32_t xMax = (tilesData.width + margin + (tx > 0 && tx < tilesData.nbPerSide - 1) * margin);
-	uint32_t yMax = (tilesData.height + margin + (ty > 0 && ty < tilesData.nbPerSide - 1) * margin);
+	int startX = (int)(tx * tilesData.width) - margin;
+	if (startX < 0)
+		startX = 0;
+	int startY = (int)(ty * tilesData.height) - margin;
+	if (startY < 0)
+		startY = 0;
+	int endX = (int)((tx + 1) * tilesData.width) + margin;
+	if (endX > imgData.width)
+		endX = imgData.width;
+	int endY = (int)((ty + 1) * tilesData.height) + margin;
+	if (endY > imgData.height)
+		endY = imgData.height;
 
-	size_t    pixelCount = (size_t)xMax * yMax;
+	size_t    pixelCount = (size_t)(endX - startX) * (size_t)(endY - startY);
 	byteBuf_t packed;
 	packed.size = (pixelCount * bpp + 7) / 8;
-
 	packed.buf = calloc(packed.size, sizeof(uint8_t));
 	if (!packed.buf)
 	{
@@ -136,11 +149,11 @@ byteBuf_t packPixelData(const uint8_t *img, uint8_t bpp, uint8_t margin, tilesDa
 	}
 
 	size_t bitCursor = 0;
-	for (uint32_t y = 0; y < yMax; y++)
+	for (int y = startY; y < endY; y++)
 	{
-		const uint8_t *srcRow = &img[(ty * tilesData.height + y) * imgData.width + tx * tilesData.width];
+		const uint8_t *srcRow = &img[(size_t)(y * imgData.width)];
 
-		for (uint32_t x = 0; x < xMax; x++)
+		for (int x = startX; x < endX; x++)
 		{
 			uint8_t v = srcRow[x] & ((1 << bpp) - 1);
 
@@ -184,8 +197,6 @@ byteBuf_t compress(const byteBuf_t *packed, uint8_t compression)
 
 int createTileFile(const byteBuf_t *compressed, opts_t opts, tilesData_t tilesData, int tx, int ty, const char *outdir)
 {
-	mkdir(outdir, 0755);
-
 	char filename[256];
 	if (outdir[0])
 		snprintf(filename, sizeof(filename), "%s/%s_%03d_%03d.zst", outdir, outdir, tx, ty);
@@ -221,12 +232,14 @@ int main(int argc, char **argv)
 	char infile[256] = {};
 	char outdir[256] = {};
 	readArgs(argc, argv, infile, outdir);
+	mkdir(outdir, 0755);
 
 	imageData_t    imgData;
 	const uint8_t *img = loadImage(&imgData, infile);
 
 	tilesData_t tilesData = computeTilesData(imgData, opts.subdivs);
 
+	// Loop for each tile
 	for (int ty = 0; ty < tilesData.nbPerSide; ty++)
 	{
 		for (int tx = 0; tx < tilesData.nbPerSide; tx++)
